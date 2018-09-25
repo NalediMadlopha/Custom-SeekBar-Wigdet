@@ -1,4 +1,4 @@
-package com.naledimadlopha.app.seekbarwidget
+package com.naledimadlopha.app.widget
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle

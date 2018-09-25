@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <dimen name="seek_bar_widget_slider_padding">6dp</dimen>
     <dimen name="medium_text_size">16sp</dimen>
+    <dimen name="activity_padding">16dp</dimen>
 </resources>

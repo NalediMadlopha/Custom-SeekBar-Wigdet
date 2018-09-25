@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="SeekBarWidget">
+        <attr name="left_label" format="string" />
+        <attr name="right_label" format="string" />
+        <attr name="start" format="float" />
+        <attr name="interval" format="float" />
+        <attr name="min" format="float" />
+        <attr name="max" format="float" />
+    </declare-styleable>
+
+</resources>

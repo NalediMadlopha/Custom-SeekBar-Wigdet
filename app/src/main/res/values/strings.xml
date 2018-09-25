@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SeekBar Widget</string>
+    <string name="seek_bar_default_label_format">%1$s</string>
+    <string name="interest_prime_rate_right_label">%1$s%% (prime rate)</string>
 </resources>

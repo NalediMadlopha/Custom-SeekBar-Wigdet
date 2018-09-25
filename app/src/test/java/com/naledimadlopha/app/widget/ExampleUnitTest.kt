@@ -1,4 +1,4 @@
-package com.naledimadlopha.app.seekbarwidget
+package com.naledimadlopha.app.widget
 
 import org.junit.Test
 
