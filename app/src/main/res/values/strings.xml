@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">SeekBar Widget</string>
     <string name="seek_bar_default_label_format">%1$s</string>
-    <string name="interest_prime_rate_right_label">%1$s%% (prime rate)</string>
+    <string name="right_label_prime_minus">%1$s%% (prime - %2$s)</string>
+    <string name="right_label_prime_plus">%1$s%% (prime + %2$s)</string>
 </resources>

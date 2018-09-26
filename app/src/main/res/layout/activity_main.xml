@@ -8,6 +8,7 @@
     tools:context=".MainActivity">
 
     <com.naledimadlopha.app.widget.SeekBarWidget
+        android:id="@+id/seek_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -16,7 +17,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:left_label="Left Label"
         app:right_label="%s right"
-        app:start="2"
+        app:start="10.25"
         app:interval="0.25"
         app:min="6"
         app:max="15" />

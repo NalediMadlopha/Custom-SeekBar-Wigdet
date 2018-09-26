@@ -43,6 +43,8 @@ class SeekBarWidgetTest {
     private lateinit var mockSeekBar: SeekBar
     @Mock
     private lateinit var mockResources: Resources
+    @Mock
+    private lateinit var mockOnSeekBarChangeListener: SeekBar.OnSeekBarChangeListener
 
     @Before
     fun setUp() {
@@ -72,11 +74,6 @@ class SeekBarWidgetTest {
     }
 
     @Test
-    fun should_be_an_instance_of_OnSeekBarChangeListener() {
-        assertTrue(SeekBar.OnSeekBarChangeListener::class.java.isInstance(seekBarWidget))
-    }
-
-    @Test
     fun on_construction_inflate_the_seek_bar_widget_layout() {
         verify(mockInflater).inflate(R.layout.seek_bar_widget_layout, seekBarWidget, true)
     }
@@ -92,45 +89,79 @@ class SeekBarWidgetTest {
     }
 
     @Test
-    fun on_construction_use_default_string_format_if_not_specified_for_leftLabelTextView_text() {
-        val progressStart = 10f
-        `when`(mockTypedArray.getFloat(R.styleable.SeekBarWidget_start, 0f)).thenReturn(progressStart)
-
-        seekBarWidget = SeekBarWidget(spyContext)
-
-        verify(mockLeftLabelTextView).text = progressStart.toString()
+    fun on_construction_set_start_progress() {
+        verify(mockTypedArray).getFloat(R.styleable.SeekBarWidget_start, 0f).toInt()
     }
 
     @Test
-    fun on_construction_use_string_format_if_specified_for_leftLabelTextView_text() {
-        val progressStart = 10.25f
+    fun on_construction_set_start_progress_to_minimum_progress_if_less_than_minimum_progress() {
+        val progressMinimum = 6f
+        val progressStart = 0f
+
+        `when`(mockTypedArray.getFloat(R.styleable.SeekBarWidget_min, 0f)).thenReturn(progressMinimum)
         `when`(mockTypedArray.getFloat(R.styleable.SeekBarWidget_start, 0f)).thenReturn(progressStart)
-        `when`(mockTypedArray.getString(R.styleable.SeekBarWidget_left_label)).thenReturn("%s (prime rate)")
 
         seekBarWidget = SeekBarWidget(spyContext)
 
-        verify(mockLeftLabelTextView).text = "$progressStart (prime rate)"
+        assertEquals(progressMinimum, seekBarWidget.getProgressStart())
     }
 
     @Test
-    fun on_construction_use_default_string_format_if_not_specified_for_rightLabelTextView_text() {
-        val progressStart = 10f
+    fun on_construction_set_start_progress_to_maximum_progress_if_greater_than_maximum_progress() {
+        val progressMaximum = 100f
+        val progressMinimum = 15f
+        val progressStart = 50f
+
+        `when`(mockTypedArray.getFloat(R.styleable.SeekBarWidget_max, 0f)).thenReturn(progressMaximum)
+        `when`(mockTypedArray.getFloat(R.styleable.SeekBarWidget_min, 0f)).thenReturn(progressMinimum)
         `when`(mockTypedArray.getFloat(R.styleable.SeekBarWidget_start, 0f)).thenReturn(progressStart)
 
         seekBarWidget = SeekBarWidget(spyContext)
 
-        verify(mockRightLabelTextView).text = progressStart.toString()
+        assertEquals(progressStart, seekBarWidget.getProgressStart())
     }
 
     @Test
-    fun on_construction_use_string_format_if_specified_for_rightLabelTextView_text() {
-        val progressStart = 10.25f
+    fun on_construction_set_start_progress_to_specified_start_progress_if_its_within_minimum_and_maximum_range() {
+        val progressMaximum = 100f
+        val progressStart = 120f
+
+        `when`(mockTypedArray.getFloat(R.styleable.SeekBarWidget_max, 0f)).thenReturn(progressMaximum)
         `when`(mockTypedArray.getFloat(R.styleable.SeekBarWidget_start, 0f)).thenReturn(progressStart)
-        `when`(mockTypedArray.getString(R.styleable.SeekBarWidget_right_label)).thenReturn("%s (prime rate)")
 
         seekBarWidget = SeekBarWidget(spyContext)
 
-        verify(mockRightLabelTextView).text = "$progressStart (prime rate)"
+        assertEquals(progressMaximum, seekBarWidget.getProgressStart())
+    }
+
+    @Test
+    fun on_construction_use_empty_string_if_left_label_text_is_not_specified() {
+        verify(mockLeftLabelTextView).text = ""
+    }
+
+    @Test
+    fun on_construction_set_left_label_text_if_specified() {
+        val leftLabelText = "10.25% (prime rate)"
+        `when`(mockTypedArray.getString(R.styleable.SeekBarWidget_left_label)).thenReturn(leftLabelText)
+
+        seekBarWidget = SeekBarWidget(spyContext)
+
+        verify(mockLeftLabelTextView).text = leftLabelText
+    }
+
+    @Test
+    fun on_construction_use_empty_string_if_right_label_text_is_not_specified() {
+        verify(mockRightLabelTextView).text = ""
+    }
+
+    @Test
+    fun on_construction_set_right_label_text_if_specified() {
+        val rightLabelText = "10.25% (prime rate)"
+        `when`(mockTypedArray.getString(R.styleable.SeekBarWidget_right_label)).thenReturn(rightLabelText)
+
+        seekBarWidget = SeekBarWidget(spyContext)
+
+        verify(mockRightLabelTextView).text = rightLabelText
     }
 
     @Test
@@ -141,6 +172,16 @@ class SeekBarWidgetTest {
         seekBarWidget = SeekBarWidget(spyContext)
 
         verify(mockSeekBar).setPadding(dimensionPixelSize, dimensionPixelSize, dimensionPixelSize, dimensionPixelSize)
+    }
+
+    @Test
+    fun on_construction_set_seek_bar_progress() {
+        verify(mockSeekBar).progress = ArgumentMatchers.anyInt()
+    }
+
+    @Test
+    fun on_construction_set_seek_bar_max() {
+        verify(mockSeekBar).max = ArgumentMatchers.anyInt()
     }
 
     @Test
@@ -164,21 +205,57 @@ class SeekBarWidgetTest {
     }
 
     @Test
-    fun set_start_progress() {
-        val progressStart = 10.0f
+    fun setProgressStart_should_set_the_start_progress_to_minimum_progress_if_less_than_minimum_progress() {
+        val progressMinimum = 6f
+        val progressStart = 0f
 
+        seekBarWidget.setProgressMinimum(progressMinimum)
+        seekBarWidget.setProgressStart(progressStart)
+
+        assertEquals(progressMinimum, seekBarWidget.getProgressStart())
+    }
+
+    @Test
+    fun setProgressStart_should_set_the_start_progress_to_maximum_progress_if_greater_than_maximum_progress() {
+        val progressMaximum = 100f
+        val progressStart = 120f
+
+        seekBarWidget.setProgressMaximum(progressMaximum)
+        seekBarWidget.setProgressStart(progressStart)
+
+        assertEquals(progressMaximum, seekBarWidget.getProgressStart())
+    }
+
+    @Test
+    fun setProgressStart_should_set_the_start_progress_to_specified_start_progress_if_its_within_minimum_and_maximum_range() {
+        val progressMaximum = 100f
+        val progressMinimum = 0f
+        val progressStart = 50f
+
+        seekBarWidget.setProgressMaximum(progressMaximum)
+        seekBarWidget.setProgressMinimum(progressMinimum)
         seekBarWidget.setProgressStart(progressStart)
 
         assertEquals(progressStart, seekBarWidget.getProgressStart())
     }
 
     @Test
-    fun set_progress_interval() {
+    fun setProgressInterval_should_set_the_progress_interval_to_default_if_less_than_default() {
+        val defaultProgressInterval = 0.1f
+
+        seekBarWidget.setProgressInterval(0f)
+
+        assertEquals(defaultProgressInterval, seekBarWidget.getProgressInterval())
+    }
+
+    @Test
+    fun setProgressInterval_should_set_the_progress_interval_to_specified_interval() {
         val progressInterval = 1f
 
         seekBarWidget.setProgressInterval(progressInterval)
 
         assertEquals(progressInterval, seekBarWidget.getProgressInterval())
+        verify(mockSeekBar).max = Math.round((100f - 0f) / progressInterval)
     }
 
     @Test
@@ -188,6 +265,7 @@ class SeekBarWidgetTest {
         seekBarWidget.setProgressMaximum(progressMax)
 
         assertEquals(progressMax, seekBarWidget.getProgressMaximum())
+        verify(mockSeekBar).max = Math.round((progressMax - 0f) / 0.1f)
     }
 
     @Test
@@ -197,6 +275,24 @@ class SeekBarWidgetTest {
         seekBarWidget.setProgressMinimum(progressMin)
 
         assertEquals(progressMin, seekBarWidget.getProgressMinimum())
+        verify(mockSeekBar).max = Math.round((100f - progressMin) / 0.1f)
+    }
+
+    @Test
+    fun set_seek_bar_progress() {
+        val progress = 10
+
+        seekBarWidget.setProgress(progress)
+
+        verify(mockSeekBar).progress = progress
+    }
+
+    @Test
+    fun set_seek_bar_on_progress_changed_listener() {
+        seekBarWidget.setSeekBarChangedListener(mockOnSeekBarChangeListener)
+
+        assertEquals(mockOnSeekBarChangeListener, seekBarWidget.getSeekBarChangedListener())
+        verify(mockSeekBar).setOnSeekBarChangeListener(mockOnSeekBarChangeListener)
     }
 
 }
